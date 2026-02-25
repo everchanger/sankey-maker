@@ -86,7 +86,7 @@ function draw() {
       .attr('font-size', 12)
       .attr('fill', '#1e293b')
       .text((d) => d.name)
-  } catch (e) {
+  } catch {
     while (el.firstChild) el.removeChild(el.firstChild)
     emit('error', 'Failed to render the chart. The data may contain invalid or conflicting values.')
   }
