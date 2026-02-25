@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSankeyStore } from '../stores/sankey'
 import SankeyChart from '../components/SankeyChart.vue'
@@ -7,11 +7,20 @@ import SankeyChart from '../components/SankeyChart.vue'
 const router = useRouter()
 const store = useSankeyStore()
 
-if (!store.sankeyData) {
+if (!store.csvData) {
   router.replace('/')
 }
 
 const chartData = computed(() => store.sankeyData)
+const chartError = ref('')
+
+const error = computed(() => {
+  if (chartError.value) return chartError.value
+  if (store.csvData && store.categoryCol && store.valueCol && !chartData.value) {
+    return 'Unable to generate the chart. Please check that your data contains valid numeric values in the selected value column.'
+  }
+  return ''
+})
 
 function exportSVG() {
   const svgEl = document.querySelector('.sankey-svg')
@@ -84,7 +93,13 @@ function downloadBlob(blob, filename) {
         </div>
       </div>
 
-      <SankeyChart v-if="chartData" :data="chartData" />
+      <div v-if="error" class="error-box">
+        <p class="error-icon">⚠️</p>
+        <p class="error-text">{{ error }}</p>
+        <button class="btn btn-ghost" @click="router.push('/wizard')">← Back to column selection</button>
+      </div>
+
+      <SankeyChart v-else-if="chartData" :data="chartData" @error="(msg) => chartError = msg" />
 
       <button class="btn btn-ghost start-over" @click="() => { store.reset(); router.push('/') }">
         Start over
@@ -153,6 +168,28 @@ function downloadBlob(blob, filename) {
 
 .start-over {
   margin-top: 1.5rem;
+}
+
+.error-box {
+  background: #fef2f2;
+  border: 2px solid #fecaca;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.error-icon {
+  font-size: 2rem;
+}
+
+.error-text {
+  color: #991b1b;
+  font-size: 0.9375rem;
+  line-height: 1.5;
 }
 
 .btn {
