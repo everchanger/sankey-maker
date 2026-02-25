@@ -3,8 +3,10 @@ import { defineStore } from 'pinia'
 export function parseNumericValue(raw) {
   if (raw == null) return NaN
   if (typeof raw === 'number') return raw
-  const s = String(raw).trim()
+  let s = String(raw).trim()
   if (!s) return NaN
+  // Strip &nbsp; HTML entities and non-breaking / regular spaces used as thousands separators
+  s = s.replace(/&nbsp;/gi, '').replace(/[\u00A0\u2007\u202F]/g, '').replace(/ /g, '')
   const lastDot = s.lastIndexOf('.')
   const lastComma = s.lastIndexOf(',')
   if (lastComma > lastDot) {
@@ -96,12 +98,26 @@ export const useSankeyStore = defineStore('sankey', {
       }
 
       // Expense categories → Sub-categories (if applicable)
+      // Disambiguate subcategory names that collide with existing node names
       if (state.subCategoryCol) {
-        for (const [key, value] of expenseBySubCategory) {
+        const topLevelNames = new Set(nodeSet)
+        const subCatNameMap = new Map() // original key → safe node name
+
+        for (const [key] of expenseBySubCategory) {
           const [category, subCat] = key.split('|||')
+          let safeName = subCat
+          if (topLevelNames.has(subCat) || subCat === TOTAL_INCOME) {
+            safeName = `${category} › ${subCat}`
+          }
+          subCatNameMap.set(key, safeName)
+        }
+
+        for (const [key, value] of expenseBySubCategory) {
+          const [category] = key.split('|||')
+          const safeName = subCatNameMap.get(key)
           nodeSet.add(category)
-          nodeSet.add(subCat)
-          links.push({ sourceName: category, targetName: subCat, value })
+          nodeSet.add(safeName)
+          links.push({ sourceName: category, targetName: safeName, value })
         }
       }
 

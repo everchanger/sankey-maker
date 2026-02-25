@@ -53,11 +53,14 @@ function exportPNG() {
   img.src = url
 }
 
-function exportJSON() {
+function exportSankeyMatic() {
   const data = store.sankeyData
   if (!data) return
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-  downloadBlob(blob, 'sankey-data.json')
+  const lines = data.links.map(
+    (l) => `${l.source} [${Number(l.value.toFixed(2))}] ${l.target}`,
+  )
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain' })
+  downloadBlob(blob, 'sankey-data.txt')
 }
 
 function downloadBlob(blob, filename) {
@@ -88,7 +91,7 @@ function downloadBlob(blob, filename) {
           <div class="export-btns">
             <button class="btn btn-outline" @click="exportSVG">SVG</button>
             <button class="btn btn-outline" @click="exportPNG">PNG</button>
-            <button class="btn btn-primary" @click="exportJSON">JSON Data</button>
+            <button class="btn btn-primary" @click="exportSankeyMatic">SankeyMatic Data</button>
           </div>
         </div>
       </div>
