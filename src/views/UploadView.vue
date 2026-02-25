@@ -25,12 +25,12 @@ function handleFile(file) {
     <div class="container">
       <div class="hero">
         <h1 class="title">Sankey Maker</h1>
-        <p class="subtitle">Turn your CSV data into beautiful Sankey diagrams</p>
+        <p class="subtitle">Visualize your income and expenses as a Sankey diagram</p>
       </div>
       <DropZone @file="handleFile" />
       <div class="hints">
-        <p>Your CSV should have columns for <strong>source</strong>, <strong>target</strong>, and <strong>value</strong>.</p>
-        <p>You'll choose which columns to use in the next step.</p>
+        <p>Your CSV should have columns for <strong>category</strong>, <strong>amount</strong>, and optionally <strong>sub-category</strong>.</p>
+        <p>Positive amounts are treated as income, negative as expenses.</p>
       </div>
     </div>
   </div>

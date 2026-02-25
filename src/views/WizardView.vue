@@ -11,39 +11,50 @@ if (!store.csvData) {
 }
 
 const step = ref(1)
-const source = ref(store.sourceCol || '')
-const target = ref(store.targetCol || '')
+const category = ref(store.categoryCol || '')
 const value = ref(store.valueCol || '')
+const subCategory = ref(store.subCategoryCol || '')
 
 const headers = computed(() => store.headers)
 const preview = computed(() => store.csvData?.slice(0, 3) ?? [])
 
 const steps = [
-  { label: 'Source', desc: 'Which column represents the flow source (e.g. category, department)?' },
-  { label: 'Target', desc: 'Which column represents the flow destination?' },
-  { label: 'Value', desc: 'Which column contains the numeric value for each flow?' },
+  { label: 'Category', desc: 'Which column contains the category (e.g. income source, expense type)?' },
+  { label: 'Value', desc: 'Which column contains the amount? Positive values are income, negative values are expenses.' },
+  { label: 'Sub-category', desc: 'Optionally, which column contains a sub-category for expenses? You can skip this step.' },
 ]
+
+const totalSteps = steps.length
 
 const currentValue = computed({
   get() {
-    if (step.value === 1) return source.value
-    if (step.value === 2) return target.value
-    return value.value
+    if (step.value === 1) return category.value
+    if (step.value === 2) return value.value
+    return subCategory.value
   },
   set(v) {
-    if (step.value === 1) source.value = v
-    else if (step.value === 2) target.value = v
-    else value.value = v
+    if (step.value === 1) category.value = v
+    else if (step.value === 2) value.value = v
+    else subCategory.value = v
   },
 })
 
+function generate() {
+  store.setColumns(category.value, value.value, subCategory.value || null)
+  router.push('/chart')
+}
+
 function next() {
-  if (step.value < 3) {
+  if (step.value < totalSteps) {
     step.value++
   } else {
-    store.setColumns(source.value, target.value, value.value)
-    router.push('/chart')
+    generate()
   }
+}
+
+function skip() {
+  subCategory.value = ''
+  generate()
 }
 
 function back() {
@@ -55,10 +66,12 @@ function back() {
 }
 
 const canNext = computed(() => {
-  if (step.value === 1) return !!source.value
-  if (step.value === 2) return !!target.value
-  return !!value.value
+  if (step.value === 1) return !!category.value
+  if (step.value === 2) return !!value.value
+  return true // sub-category is optional
 })
+
+const isSubCategoryStep = computed(() => step.value === 3)
 </script>
 
 <template>
@@ -99,9 +112,14 @@ const canNext = computed(() => {
 
         <div class="actions">
           <button class="btn btn-ghost" @click="back">Back</button>
-          <button class="btn btn-primary" :disabled="!canNext" @click="next">
-            {{ step === 3 ? 'Generate Chart' : 'Next' }}
-          </button>
+          <div class="actions-right">
+            <button v-if="isSubCategoryStep" class="btn btn-ghost" @click="skip">
+              Skip
+            </button>
+            <button class="btn btn-primary" :disabled="!canNext" @click="next">
+              {{ step === totalSteps ? 'Generate Chart' : 'Next' }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -233,6 +251,11 @@ const canNext = computed(() => {
 .actions {
   display: flex;
   justify-content: space-between;
+}
+
+.actions-right {
+  display: flex;
+  gap: 0.5rem;
 }
 
 .btn {
