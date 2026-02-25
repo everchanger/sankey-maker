@@ -69,7 +69,7 @@ function downloadBlob(blob, filename) {
           <div>
             <h1>Sankey Diagram</h1>
             <p class="meta">
-              {{ store.sourceCol }} → {{ store.targetCol }} ({{ store.valueCol }})
+              {{ store.categoryCol }} · {{ store.valueCol }}{{ store.subCategoryCol ? ' · ' + store.subCategoryCol : '' }}
             </p>
           </div>
         </div>
