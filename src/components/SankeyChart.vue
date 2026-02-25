@@ -85,7 +85,7 @@ function draw() {
       .attr('text-anchor', (d) => (d.x0 < width / 2 ? 'start' : 'end'))
       .attr('font-size', 12)
       .attr('fill', '#1e293b')
-      .text((d) => d.name)
+      .text((d) => `${d.name} (${d.value.toLocaleString()})`)
   } catch {
     while (el.firstChild) el.removeChild(el.firstChild)
     emit('error', 'Failed to render the chart. The data may contain invalid or conflicting values.')
