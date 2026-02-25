@@ -1,5 +1,21 @@
 import { defineStore } from 'pinia'
 
+export function parseNumericValue(raw) {
+  if (raw == null) return NaN
+  if (typeof raw === 'number') return raw
+  const s = String(raw).trim()
+  if (!s) return NaN
+  const lastDot = s.lastIndexOf('.')
+  const lastComma = s.lastIndexOf(',')
+  if (lastComma > lastDot) {
+    return parseFloat(s.replace(/\./g, '').replace(',', '.'))
+  }
+  if (lastDot > lastComma) {
+    return parseFloat(s.replace(/,/g, ''))
+  }
+  return parseFloat(s)
+}
+
 export const useSankeyStore = defineStore('sankey', {
   state: () => ({
     csvData: null,       // raw parsed rows (array of objects)
@@ -42,7 +58,7 @@ export const useSankeyStore = defineStore('sankey', {
 
       for (const row of state.csvData) {
         const category = row[state.categoryCol]
-        const val = parseFloat(row[state.valueCol])
+        const val = parseNumericValue(row[state.valueCol])
         if (!category || isNaN(val)) continue
 
         if (val > 0) {
@@ -88,6 +104,8 @@ export const useSankeyStore = defineStore('sankey', {
           links.push({ sourceName: category, targetName: subCat, value })
         }
       }
+
+      if (links.length === 0) return null
 
       const nodes = Array.from(nodeSet).map((name) => ({ name }))
 
